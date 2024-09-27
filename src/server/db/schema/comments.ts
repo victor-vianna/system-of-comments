@@ -30,6 +30,8 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
     references: [users.id],
   }),
   attachments: many(fileReferences),
+  mentions: many(commentsMentions),
+  reactions: many(commentsReactions),
 }));
 
 export const commentsMentions = createTable("comment_mentions", {
@@ -49,47 +51,27 @@ export const commentsMentions = createTable("comment_mentions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const commentsFiles = createTable("comment_files", {
+export const commentsReactions = createTable("comment_reactions", {
   id: varchar("id", { length: 255 })
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  commentId: varchar("comment_id")
+  commentId: varchar("comment_id", { length: 255 })
     .references(() => comments.id)
     .notNull(),
-  fileId: varchar("file_id", { length: 255 })
-    .references(() => fileReferences.id)
+  chatId: varchar("chat_id")
+    .references(() => chats.id)
     .notNull(),
+  userId: varchar("user_id", { length: 255 })
+    .references(() => users.id)
+    .notNull(),
+  reactionType: varchar("reaction_type", { length: 50 }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const commentsFilesRelations = relations(commentsFiles, ({ one }) => ({
-    comment: one(comments, {
-      fields: [commentsFiles.commentId],
-      references: [comments.id],
-    }),
-    file: one(fileReferences, {
-      fields: [commentsFiles.fileId],
-      references: [fileReferences.id],
-    }),
-  }));
-
-export const commentsReactions = createTable("comment_reactions", {
-id: varchar("id", { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-commentId: varchar("comment_id", { length: 255 })
-    .references(() => comments.id)
-    .notNull(),
-userId: varchar("user_id", { length: 255 })
-    .references(() => users.id)
-    .notNull(),
-reactionType: varchar("reaction_type", { length: 50 }).notNull(),
-createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const commentsReactionsRelations = relations(commentsReactions, ({ one }) => ({
+export const commentsReactionsRelations = relations(
+  commentsReactions,
+  ({ one }) => ({
     comment: one(comments, {
       fields: [commentsReactions.commentId],
       references: [comments.id],
@@ -98,4 +80,5 @@ export const commentsReactionsRelations = relations(commentsReactions, ({ one })
       fields: [commentsReactions.userId],
       references: [users.id],
     }),
-  }));
+  }),
+);
