@@ -10,3 +10,8 @@ Rotas de API para criar, listar e interagir com os comentários (via tRPC).
 
 Formulário para adicionar um comentário.
 Listagem de comentários por post, incluindo funcionalidade de "like" e "responder".
+
+
+## npx drizzle-kit generate
+
+## npx drizzle-kit migrate
