@@ -1,6 +1,6 @@
 import { fileReferences } from "~/server/db/schema";
-import { PublicTRPCContext } from "../../trpc";
-import { TCreateFileReferenceInput } from "./file-references.input";
+import type { PublicTRPCContext } from "../../trpc";
+import type { TCreateFileReferenceInput } from "./file-references.input";
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 
@@ -18,7 +18,7 @@ export async function createFileReference(
       format,
       url,
       size,
-      commentId: commentId || null, // Pode ser opcional
+      commentId: commentId ?? null, // Pode ser opcional
       authorId,
     })
     .returning({ insertedId: fileReferences.id });
@@ -32,7 +32,10 @@ export async function createFileReference(
     });
   }
 
-  return { message: "Referência de arquivo criada com sucesso!", id: insertedFileReferenceId };
+  return {
+    message: "Referência de arquivo criada com sucesso!",
+    id: insertedFileReferenceId,
+  };
 }
 
 export async function getFileReferenceById(ctx: PublicTRPCContext, id: string) {

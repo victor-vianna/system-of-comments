@@ -8,7 +8,9 @@ export const createFileReferenceInput = z.object({
   size: z.number().positive(),
   authorId: z.string().min(1),
 });
-export type TCreateFileReferenceInput = z.infer<typeof createFileReferenceInput>;
+export type TCreateFileReferenceInput = z.infer<
+  typeof createFileReferenceInput
+>;
 
 export const getFileReferenceInput = z.object({
   id: z.string(),

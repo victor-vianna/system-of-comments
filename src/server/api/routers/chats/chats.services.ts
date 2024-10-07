@@ -1,7 +1,7 @@
 import { chatMembers, chats } from "~/server/db/schema";
-import { PublicTRPCContext } from "../../trpc";
-import { TCreateChatInput } from "./chats.input";
+import type { TCreateChatInput } from "./chats.input";
 import { TRPCError } from "@trpc/server";
+import type { PublicTRPCContext } from "../../trpc";
 
 export async function createChat(
   ctx: PublicTRPCContext,
