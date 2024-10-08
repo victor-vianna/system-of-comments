@@ -11,10 +11,16 @@ export const chats = createTable("chats", {
     .$defaultFn(() => crypto.randomUUID()),
   title: text("title").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  authorId: varchar("author_id", { length: 255 }).notNull(),
+  authorId: varchar("author_id", { length: 255 })
+    .references(() => users.id)
+    .notNull(),
 });
 export const chatRelations = relations(chats, ({ one, many }) => ({
-  membros: many(chatMembers),
+  author: one(users, {
+    fields: [chats.authorId],
+    references: [users.id],
+  }),
+  members: many(chatMembers),
   comments: many(comments),
 }));
 

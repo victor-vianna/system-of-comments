@@ -27,3 +27,33 @@ export async function createChat(
 
   return { message: "Chat criado com sucesso !" };
 }
+
+export async function getChatById(ctx: PublicTRPCContext, input: string) {
+  const chat = await ctx.db.query.chats.findFirst({
+    where: (fields, { eq }) => eq(fields.id, input),
+    with: {
+      author: {
+        columns: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+      },
+      members: {
+        with: {
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!chat)
+    throw new TRPCError({ message: "Chat não encontrado.", code: "NOT_FOUND" });
+
+  return chat;
+}

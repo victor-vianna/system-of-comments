@@ -7,7 +7,7 @@ export const commentRouter = createTRPCRouter({
     .input(createCommentInput)
     .mutation(async ({ ctx, input }) => createComment(ctx, input)),
 
-  getCommentsByChatInput: publicProcedure
+  getCommentsByChat: publicProcedure
     .input(getCommentsByChatInput)
     .query(async ({ ctx, input }) => getCommentsByChat(ctx, input)),
 });
