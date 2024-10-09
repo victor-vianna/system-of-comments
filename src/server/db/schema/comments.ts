@@ -50,22 +50,25 @@ export const commentsMentions = createTable("comment_mentions", {
     .notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-export const commentsMentionsRelations = relations(commentsMentions, ({one, many})=> ({
-  chat: one(chats, {
-    fields: [commentsMentions.chatId],
-    references: [chats.id]
+export const commentsMentionsRelations = relations(
+  commentsMentions,
+  ({ one, many }) => ({
+    chat: one(chats, {
+      fields: [commentsMentions.chatId],
+      references: [chats.id],
+    }),
+    user: one(users, {
+      fields: [commentsMentions.userId],
+      references: [users.id],
+    }),
+    comment: one(comments, {
+      fields: [commentsMentions.commentId],
+      references: [comments.id],
+    }),
   }),
-  user: one(users, {
-    fields: [commentsMentions.userId],
-    references: [users.id]
-  }),
-  comment: one(comments, {
-    fields: [commentsMentions.commentId],
-    references: [comments.id]
-  }),
-}))
+);
 
-
+// tabela de reações
 export const commentsReactions = createTable("comment_reactions", {
   id: varchar("id", { length: 255 })
     .notNull()
@@ -84,6 +87,7 @@ export const commentsReactions = createTable("comment_reactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// relações entre reações e comentários
 export const commentsReactionsRelations = relations(
   commentsReactions,
   ({ one }) => ({

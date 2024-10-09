@@ -7,6 +7,7 @@ import CommentsWrapper from "../components/comments";
 
 const ChatComponent = () => {
   const chatId = "12345678910";
+  const userId = "1";
   const { data } = api.chats.getChatById.useQuery(chatId);
 
   return (
@@ -47,8 +48,8 @@ const ChatComponent = () => {
           </span>
         </div>
       </div>
-      <ChatInput chatId={chatId} />
-      <CommentsWrapper chatId={chatId} />
+      <ChatInput chatId={chatId} userId={userId} />
+      <CommentsWrapper chatId={chatId} userId={userId} />
     </div>
   );
 };

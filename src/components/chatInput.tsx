@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { api } from "~/trpc/react";
 
-const ChatInput = ({ chatId }: { chatId: string }) => {
+const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   const [comment, setComment] = useState("");
   const { mutate } = api.comments.createComment.useMutation();
 
@@ -17,7 +17,7 @@ const ChatInput = ({ chatId }: { chatId: string }) => {
     mutate({
       content: comment,
       chatId: chatId,
-      authorId: "1", // Alterar para o ID real do usuário
+      authorId: userId, // Alterar para o ID real do usuário
     });
 
     // Limpa o campo de texto após enviar

@@ -89,5 +89,3 @@ export async function getCommentsByChat(
 
   return chatComments;
 }
-
-// export async function createCommentReaction({})

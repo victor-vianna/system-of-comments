@@ -17,11 +17,11 @@ export const commentMentionSchema = z.object({
 });
 
 export const commentReactionSchema = z.object({
-  id: z.string(),
   commentId: z.string(),
+  chatId: z.string(),
   userId: z.string(),
   reactionType: z.string(),
-  createdAt: z.string(),
+  createdAt: z.date(),
 });
 
 export type CommentSchema = z.infer<typeof commentSchema>;

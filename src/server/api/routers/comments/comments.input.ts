@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { commentReactionSchema } from "~/lib/validators/comments";
 
 // valida o input para criar um comentário
 export const createCommentInput = z.object({
