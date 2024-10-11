@@ -3,7 +3,7 @@ import Image from "next/image";
 import React from "react";
 import ChatInput from "~/components/chatInput";
 import { api } from "~/trpc/react";
-import CommentsWrapper from "../components/comments";
+import CommentsWrapper from "../components/comments/CommentsWrapper";
 
 const ChatComponent = () => {
   const chatId = "12345678910";
@@ -48,8 +48,10 @@ const ChatComponent = () => {
           </span>
         </div>
       </div>
+      <div className="flex w-full grow flex-col">
+        <CommentsWrapper chatId={chatId} userId={userId} />
+      </div>
       <ChatInput chatId={chatId} userId={userId} />
-      <CommentsWrapper chatId={chatId} userId={userId} />
     </div>
   );
 };

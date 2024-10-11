@@ -1,11 +1,15 @@
 import { z } from "zod";
-import { commentReactionSchema } from "~/lib/validators/comments";
+import {
+  commentMentionSchema,
+  commentReactionSchema,
+  commentSchema,
+} from "~/lib/validators/comments";
 
 // valida o input para criar um comentário
 export const createCommentInput = z.object({
-  chatId: z.string(),
-  content: z.string(),
-  authorId: z.string(),
+  comment: commentSchema,
+  mentions: z.array(commentMentionSchema.omit({ commentId: true })),
+  reactions: z.array(commentReactionSchema.omit({ commentId: true })),
 });
 
 // valida o input para buscar comentário post

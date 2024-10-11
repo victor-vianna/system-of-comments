@@ -1,4 +1,8 @@
-import { comments } from "~/server/db/schema";
+import {
+  comments,
+  commentsMentions,
+  commentsReactions,
+} from "~/server/db/schema";
 import { PublicTRPCContext } from "../../trpc";
 import { TCreateCommentInput, TGetCommentsByChatInput } from "./comments.input";
 import { TRPCError } from "@trpc/server";
@@ -9,21 +13,31 @@ export async function createComment(
   ctx: PublicTRPCContext,
   input: TCreateCommentInput,
 ) {
-  const { chatId, content, authorId } = input;
+  const { comment, mentions, reactions } = input;
 
   // insere o comentário no banco de dados
   const insertCommentResponse = await ctx.db
     .insert(comments)
-    .values({ chatId, content, authorId })
+    .values({ ...comment })
     .returning({ id: comments.id });
 
   const insertedCommentId = insertCommentResponse[0]?.id;
-
   if (!insertedCommentId)
     throw new TRPCError({
       message: "Erro ao criar comentário.",
       code: "INTERNAL_SERVER_ERROR",
     });
+
+  // criando menções do comentário
+  if (mentions.length > 0)
+    await ctx.db
+      .insert(commentsMentions)
+      .values(mentions.map((m) => ({ ...m, commentId: insertedCommentId })));
+  // criando reações do comentário
+  if (reactions.length > 0)
+    await ctx.db
+      .insert(commentsReactions)
+      .values(reactions.map((m) => ({ ...m, commentId: insertedCommentId })));
 
   return { message: "Comentário criado com sucesso!" };
 }
