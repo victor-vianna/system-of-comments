@@ -1,8 +1,16 @@
 import Image from "next/image";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { api } from "~/trpc/react";
 import { TChatComment } from "~/types/comments";
 import { AiOutlineLike } from "react-icons/ai";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 type CommentsWrapperProps = {
   chatId: string;
   userId: string;
@@ -15,6 +23,7 @@ export default function CommentsWrapper({
   const { data: comments } = api.comments.getCommentsByChat.useQuery({
     chatId,
   });
+
   return (
     <div className="flex w-full flex-col">
       {comments?.map((comment) => (
@@ -30,31 +39,151 @@ type CommentProps = {
 };
 
 const Comment = ({ comment, userId }: CommentProps) => {
+  const [isEmojiPickerVisible, setEmojiPickerVisible] = useState(false);
+
   const utils = api.useUtils();
-  const { mutate, isPending } = api.reactions.createReaction.useMutation({
-    onMutate: async () => {
-      await utils.comments.getCommentsByChat.cancel();
-    },
-    onSuccess: (data) => {
-      toast.success(data, { position: "top-center" });
-    },
-    onSettled: async () => {
-      await utils.comments.getCommentsByChat.invalidate({
-        chatId: comment.chatId,
-      });
-    },
-  });
+
+  const { mutate: createMutation, isPending } =
+    api.reactions.createReaction.useMutation({
+      onMutate: async (data) => {
+        await utils.comments.getCommentsByChat.cancel();
+        // Get the data from the queryCache
+        const prevData = utils.comments.getCommentsByChat.getData();
+        utils.comments.getCommentsByChat.setData(
+          { chatId: comment.chatId },
+          (old) => {
+            const indexOfComment = old?.map((p) => p.id).indexOf(comment.id);
+            return old?.map((comment, index) =>
+              index != indexOfComment
+                ? comment
+                : {
+                    ...comment,
+                    reactions: [
+                      ...comment.reactions,
+                      {
+                        ...data,
+                        id: "id-holder",
+                        user: { id: "user-id-holder", nome: "..." },
+                      },
+                    ],
+                  },
+            );
+          },
+        );
+        return { prevData };
+      },
+      onSuccess: (data, err, cont) => {
+        toast.success(data, {
+          position: "top-center",
+        });
+      },
+      onSettled: async () => {
+        await utils.comments.getCommentsByChat.invalidate({
+          chatId: comment.chatId,
+        });
+      },
+      onError(err, newReaction, ctx) {
+        toast.error(err.message);
+        // If the mutation fails, use the context-value from onMutate
+        utils.comments.getCommentsByChat.setData(
+          { chatId: comment.chatId },
+          ctx?.prevData,
+        );
+      },
+    });
+  const { mutate: deleteMutation, isPending: isDeletePending } =
+    api.reactions.deleteReaction.useMutation({
+      onMutate: async (data) => {
+        await utils.comments.getCommentsByChat.cancel();
+        // Get the data from the queryCache
+        const prevData = utils.comments.getCommentsByChat.getData();
+        utils.comments.getCommentsByChat.setData(
+          { chatId: comment.chatId },
+          (old) => {
+            const indexOfComment = old?.map((p) => p.id).indexOf(comment.id);
+            return old?.map((comment, index) =>
+              index != indexOfComment
+                ? comment
+                : {
+                    ...comment,
+                    reactions: comment.reactions.filter((r) => r.id != data),
+                  },
+            );
+          },
+        );
+        return { prevData };
+      },
+      onSuccess: (data, err, cont) => {
+        toast.success(data, {
+          position: "top-center",
+        });
+      },
+      onSettled: async () => {
+        await utils.comments.getCommentsByChat.invalidate({
+          chatId: comment.chatId,
+        });
+      },
+      onError(err, newReaction, ctx) {
+        toast.error(err.message);
+        // If the mutation fails, use the context-value from onMutate
+        utils.comments.getCommentsByChat.setData(
+          { chatId: comment.chatId },
+          ctx?.prevData,
+        );
+      },
+    });
 
   const reactionsCounterList = comment.reactions.reduce(
     (acc: { [key: string]: number }, current) => {
       if (!acc[current.reactionType]) acc[current.reactionType] = 0;
-      // @ts-ignore
       acc[current.reactionType] += 1;
       return acc;
     },
     {},
   );
-  console.log("COMMENT", comment.content, reactionsCounterList);
+
+  function hasUserReact({
+    reactionType,
+    reactions,
+    userId,
+  }: {
+    reactionType: string;
+    reactions: TChatComment["reactions"];
+    userId: string;
+  }) {
+    if (reactionType != "like") {
+      console.log(reactionType);
+      console.log(reactions);
+    }
+
+    return reactions.find(
+      (r) => r.reactionType === reactionType && r.userId === userId,
+    );
+  }
+  // Função para capturar o emoji
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    const reactionType = emojiData.emoji; // Pega o emoji escolhido
+    const userHasAlreadyReact = hasUserReact({
+      reactionType,
+      reactions: comment.reactions,
+      userId,
+    });
+    console.log("REAÇÃO ENCONTRADA", userHasAlreadyReact);
+    if (!userHasAlreadyReact) {
+      createMutation({
+        chatId: comment.chatId,
+        commentId: comment.id,
+        reactionType, // Usa o emoji como o tipo de reação
+        userId: userId,
+        createdAt: new Date(),
+      });
+    } else {
+      deleteMutation(userHasAlreadyReact.id);
+    }
+
+    setEmojiPickerVisible(false); // Fecha o picker após o emoji ser selecionado
+  };
+
   return (
     <div className="mb-4 border-b pb-4">
       <div className="flex items-start">
@@ -89,25 +218,59 @@ const Comment = ({ comment, userId }: CommentProps) => {
           </div>
 
           {/* Interações */}
+
+          {/* like após click */}
           <div className="mt-2 flex items-center text-gray-500">
-            {Object.entries(reactionsCounterList).map(([key, value]) => {
-              if (key == "like")
-                return (
-                  <div
-                    key={key}
-                    className="flex items-center gap-1 rounded-lg border border-cyan-500 p-2 text-xs text-cyan-500"
-                  >
-                    <AiOutlineLike />
-                    <h1>{value}</h1>
-                  </div>
-                );
-            })}
-            {comment.reactions.find(
-              (r) => r.reactionType == "like" && r.userId == userId,
-            ) ? null : (
+            <div className="flex items-center gap-1">
+              {Object.entries(reactionsCounterList).map(([key, value]) => {
+                if (key === "like")
+                  return (
+                    <button
+                      disabled={isDeletePending}
+                      key={key}
+                      onClick={() => {
+                        const reaction = comment.reactions.find(
+                          (r) => r.reactionType == "like" && r.userId == userId,
+                        );
+                        if (!reaction) return;
+                        else deleteMutation(reaction.id);
+                      }}
+                      className="flex items-center gap-1 rounded-lg border border-cyan-500 px-2 py-0.5 text-[0.6rem] text-cyan-500"
+                    >
+                      <AiOutlineLike />
+                      <h1>{value}</h1>
+                    </button>
+                  );
+                else
+                  return (
+                    <button
+                      key={key}
+                      disabled={isDeletePending}
+                      onClick={() => {
+                        const reaction = comment.reactions.find(
+                          (r) => r.reactionType == key && r.userId == userId,
+                        );
+                        if (!reaction) return;
+                        else deleteMutation(reaction.id);
+                      }}
+                      className="flex items-center gap-1 rounded-lg border border-cyan-500 px-2 py-0.5 text-[0.6rem] text-cyan-500"
+                    >
+                      {key}
+                      <h1>{value}</h1>
+                    </button>
+                  );
+              })}
+            </div>
+
+            {hasUserReact({
+              reactionType: "like",
+              reactions: comment.reactions,
+              userId,
+            }) ? null : (
               <button
+                disabled={isPending}
                 onClick={() =>
-                  mutate({
+                  createMutation({
                     chatId: comment.chatId,
                     commentId: comment.id,
                     reactionType: "like",
@@ -117,25 +280,14 @@ const Comment = ({ comment, userId }: CommentProps) => {
                 }
                 className="flex items-center space-x-1"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14 9l-6 6m0 0l-6-6m6 6v3"
-                  />
-                </svg>
+                <AiOutlineLike />
                 <span>Curtir</span>
               </button>
             )}
-
-            <button className="ml-4 flex items-center space-x-1">
+            <button
+              onClick={() => setEmojiPickerVisible((prev) => !prev)}
+              className="ml-4 flex items-center space-x-1"
+            >
               <svg
                 className="h-5 w-5"
                 fill="none"
@@ -152,7 +304,13 @@ const Comment = ({ comment, userId }: CommentProps) => {
               </svg>
               <span>Reações</span>
             </button>
-            {/* <button className="ml-4">Responder</button> */}
+
+            {/* Condicional para mostrar o Emoji Picker */}
+            {isEmojiPickerVisible && (
+              <div className="mt-2">
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+              </div>
+            )}
           </div>
         </div>
       </div>

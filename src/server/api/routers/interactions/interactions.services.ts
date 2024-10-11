@@ -4,6 +4,7 @@ import { PublicTRPCContext } from "../../trpc";
 import { TCreateChatInput } from "../chats/chats.input";
 import { TCreateReactionInput } from "./interactions.input";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
 
 // função para adicionar curtida
 export const createReaction = async (
@@ -11,6 +12,7 @@ export const createReaction = async (
   input: TCreateReactionInput,
 ) => {
   console.log(input);
+
   const response = await ctx.db
     .insert(commentsReactions)
     .values({ ...input })
@@ -24,6 +26,11 @@ export const createReaction = async (
     });
 
   return "Reação criada com sucesso !";
+};
+
+export const deleteReaction = async (ctx: PublicTRPCContext, input: string) => {
+  await ctx.db.delete(commentsReactions).where(eq(commentsReactions.id, input));
+  return "Reação removida com sucesso !";
 };
 
 // // função para adicionar reação com emoji

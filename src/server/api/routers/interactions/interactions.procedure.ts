@@ -1,10 +1,11 @@
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import {
   CreateReactionInput,
+  DeleteReactionInputSchema,
   likeCommentInput,
   reactToCommentInput,
 } from "./interactions.input";
-import { createReaction } from "./interactions.services";
+import { createReaction, deleteReaction } from "./interactions.services";
 
 export const interactionsRouter = createTRPCRouter({
   // rota para adicionar curtida a um comentário
@@ -12,6 +13,11 @@ export const interactionsRouter = createTRPCRouter({
     .input(CreateReactionInput)
     .mutation(async ({ ctx, input }) => {
       return createReaction(ctx, input);
+    }),
+  deleteReaction: publicProcedure
+    .input(DeleteReactionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      return deleteReaction(ctx, input);
     }),
 
   //   //rota para adicionar reação a um comentário
