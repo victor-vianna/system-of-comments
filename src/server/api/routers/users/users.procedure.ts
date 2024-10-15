@@ -1,6 +1,6 @@
-import { publicProcedure } from "../../trpc";
+import { createTRPCRouter, publicProcedure } from "../../trpc";
 import { listUsersInput, searchUserByNameInput } from "./users.input";
-import * as userService from "./users.input";
+import * as userService from "./users.service";
 
 export const searchUserByNameProcedure = publicProcedure
   .input(searchUserByNameInput)
@@ -14,7 +14,7 @@ export const listUsersProcedure = publicProcedure
     return await userService.listUsers(input.limit, input.page);
   });
 
-export const usersRouter = router({
+export const usersRouter = createTRPCRouter({
   searchUserByName: searchUserByNameProcedure,
   listUsers: listUsersProcedure,
 });

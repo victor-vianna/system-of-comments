@@ -1,3 +1,4 @@
+import { like } from "drizzle-orm";
 import { db } from "~/server/db";
 import { users } from "~/server/db/schema";
 
@@ -5,7 +6,7 @@ export const searchUserByName = async (query: string) => {
   return await db
     .select()
     .from(users)
-    .where(users.name.ilike(`%${query}%`)) //filtro por nome contendo a query
+    .where(like(users.name, `%${query}`)) //filtro por nome contendo a query
     .limit(10);
 };
 

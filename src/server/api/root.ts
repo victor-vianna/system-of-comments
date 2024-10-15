@@ -4,6 +4,7 @@ import { chatRouter } from "./routers/chats/chats.procedure";
 import { commentRouter } from "./routers/comments/comments.procedure";
 import { fileReferencesRouter } from "./routers/file-references/file-references.procedure";
 import { interactionsRouter } from "./routers/interactions/interactions.procedure";
+import { usersRouter } from "./routers/users/users.procedure";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   comments: commentRouter,
   reactions: interactionsRouter,
   fileReferences: fileReferencesRouter,
+  users: usersRouter,
 });
 
 // export type definition of API
