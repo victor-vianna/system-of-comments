@@ -9,6 +9,8 @@ import MentionsMenu from "./comments/utils/MentionsMenu";
 
 const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   const [mentionsMenuIsOpen, setMentionsMenuIsOpen] = useState<boolean>(false);
+  const [query, setQuery] = useState("");
+  const [cursorPosition, setCursorPosition] = useState(0);
   const [infoHolder, setInfoHolder] = useState<TCreateCommentInput>({
     comment: {
       chatId: chatId,
@@ -25,12 +27,7 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
     // Verifica se o comentário não está vazio antes de enviar
     if (infoHolder.comment.content.trim() === "") return;
 
-    // Envia o comentário usando a mutação do TRPC
-    // mutate({
-    //   content: comment,
-    //   chatId: chatId,
-    //   authorId: userId, // Alterar para o ID real do usuário
-    // });
+    mutate(infoHolder);
 
     // Limpa o campo de texto após enviar
     setInfoHolder({
@@ -43,12 +40,42 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
       reactions: [],
     });
   };
-  function handleMention(userId: string) {
+  const handleMention = (userId: string, userId: string) => {
+    const beforeCursor = infoHolder.comment.content
+      .slice(0, cursorPosition)
+      .replace(/@\w*$/, `@${userName} `);
+    const afterCursor = infoHolder.comment.content.slice(cursorPosition);
+    const newText = `${beforeCursor}${afterCursor}`;
+
     setInfoHolder((prev) => ({
       ...prev,
+      comment: { ...prev.comment, content: newText },
       mentions: [...prev.mentions, { chatId, userId }],
     }));
-  }
+
+    setMentionsMenuIsOpen(false);
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const inputValue = e.target.value;
+      const cursorPosition = e.target.selectionStart;
+      setCursorPosition(cursorPosition);
+
+      setInfoHolder((prev) => ({
+        ...prev,
+        comment: { ...prev.comment, content: inputValue },
+      }));
+
+      // Verifica se o usuário começou a digitar uma menção com "@"
+      const mentionMatch = inputValue.slice(0, cursorPosition).match(/@(\w*)$/);
+      if (mentionMatch) {
+        const searchQuery = mentionMatch[1];
+        setQuery(searchQuery); // Define o texto a ser buscado
+        setMentionsMenuIsOpen(true); // Abre o menu de menções
+      } else {
+        setMentionsMenuIsOpen(false); // Fecha o menu se não houver menção
+      }
+    };
+  };
   return (
     <form onSubmit={handleSubmit} className="mt-auto">
       <textarea

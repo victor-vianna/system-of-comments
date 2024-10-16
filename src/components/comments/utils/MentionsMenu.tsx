@@ -14,7 +14,18 @@ function MentionsMenu({
   children,
   handleMention,
 }: PropsWithChildren<MentionsMenuProps>) {
-  const users = [{ id: "1", name: "Victor Vianna", avatar: null }];
+  const users = [
+    {
+      id: "1",
+      name: "Victor Vianna",
+      avatar: null,
+    },
+    {
+      id: "2",
+      name: "Lucas Fernandes",
+      avatar: null,
+    },
+  ];
   return (
     <Popover>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
