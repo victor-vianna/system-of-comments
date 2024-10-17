@@ -290,9 +290,15 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
               {/* Condicional para mostrar o Emoji Picker */}
             </div>
             <div className="flex items-center gap-2">
-              <button>
-                <AtSign width={18} height={18} />
-              </button>
+              <AtSign width={15} height={15} />
+              {comment.mentions.map((m) => (
+                <div key={m.id} className="flex items-center gap-1">
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={m.user.avatar ?? undefined} />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
+                </div>
+              ))}
             </div>
           </div>
         </div>

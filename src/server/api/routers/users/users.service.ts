@@ -18,5 +18,14 @@ export const listUsers = async (limit: number, page: number) => {
 
   const offset = PAGE_SIZE * (page - 1);
 
-  return await db.select().from(users).limit(PAGE_SIZE).offset(offset);
+  const users = await db.query.users.findMany({
+    offset: offset,
+    limit: limit,
+  });
+  return users;
+  // return await db
+  //   .select({ id: true })
+  //   .from(users)
+  //   .limit(PAGE_SIZE)
+  //   .offset(offset);
 };
