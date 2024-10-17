@@ -67,11 +67,13 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
       comment: { ...prev.comment, content: inputValue },
     }));
 
-    // Verifica se o usuário começou a digitar "@" e ativa o menu de menções
-    const mentionMatch = inputValue.slice(0, cursorPosition).match(/@(\w*)$/);
-    if (mentionMatch) {
-      const searchQuery = mentionMatch[1] || ""; // Garantir que searchQuery seja uma string válida
-      setQuery(searchQuery); // Define a query para buscar usuários
+    // Expressão regular para capturar a menção
+    const mentionRegex = /@(\w*)$/;
+    const mentionMatch = mentionRegex.exec(inputValue.slice(0, cursorPosition)); // Usa RegExp.exec()
+
+    // Verifica se há correspondência e define a query
+    if (mentionMatch?.[1]) {
+      setQuery(mentionMatch[1]); // Define a query para buscar usuários
       setMentionsMenuIsOpen(true); // Abre o menu de menções
     } else {
       setMentionsMenuIsOpen(false); // Fecha o menu se não houver menção
@@ -79,7 +81,7 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-auto relative">
+    <form onSubmit={handleSubmit} className="relative mt-auto">
       <textarea
         value={infoHolder.comment.content}
         onChange={handleTextChange} // Usa a função handleTextChange para atualizar o texto
@@ -99,7 +101,10 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
       )}
 
       <div className="mt-2 flex justify-end gap-3">
-        <button type="submit" className="rounded-lg bg-purple-500 px-4 py-2 text-white hover:bg-purple-600">
+        <button
+          type="submit"
+          className="rounded-lg bg-purple-500 px-4 py-2 text-white hover:bg-purple-600"
+        >
           Enviar
         </button>
       </div>
