@@ -13,14 +13,17 @@ import {
 } from "~/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { AtSign } from "lucide-react";
+import {
+  formatContentWithoutMentionMarker,
+  formatMention,
+  isTextMention,
+} from "~/lib/mentions";
 type CommentProps = {
   comment: TChatComment;
   userId: string;
 };
 
 const CommentCard = ({ comment, userId }: CommentProps) => {
-  const [isEmojiPickerVisible, setEmojiPickerVisible] = useState(false);
-
   const utils = api.useUtils();
 
   const { mutate: createMutation, isPending } =
@@ -124,7 +127,7 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
     {} as Record<string, number>,
   );
 
-  function hasUserReact({
+  const hasUserReact = ({
     reactionType,
     reactions,
     userId,
@@ -132,16 +135,11 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
     reactionType: string;
     reactions: TChatComment["reactions"];
     userId: string;
-  }) {
-    if (reactionType != "like") {
-      console.log(reactionType);
-      console.log(reactions);
-    }
-
+  }) => {
     return reactions.find(
       (r) => r.reactionType === reactionType && r.userId === userId,
     );
-  }
+  };
   // Função para capturar o emoji
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     const reactionType = emojiData.emoji; // Pega o emoji escolhido
@@ -150,7 +148,6 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
       reactions: comment.reactions,
       userId,
     });
-    console.log("REAÇÃO ENCONTRADA", userHasAlreadyReact);
     if (!userHasAlreadyReact) {
       createMutation({
         chatId: comment.chatId,
@@ -162,8 +159,76 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
     } else {
       deleteMutation(userHasAlreadyReact.id);
     }
+  };
 
-    setEmojiPickerVisible(false); // Fecha o picker após o emoji ser selecionado
+  // const highlightMentions = (
+  //   text: string,
+  //   mentions: TChatComment["mentions"],
+  // ) => {
+  //   let formattedText = text;
+  //   mentions.forEach((m) => {
+  //     const userName = m.user.name;
+  //     formattedText = formattedText.replaceAll(
+  //       `@${userName}`,
+  //       `[@${userName.replaceAll(" ", "_")}] `,
+  //     );
+  //   });
+
+  //   const mentionRegex = /(@\w+(\s\w+)?)/g; // detecta palavras que começam com "@"
+  //   return formattedText.split(" ").map((part, index) => {
+  //     console.log("PART", part);
+  //     if (part.startsWith("[") && part.endsWith("]")) {
+  //       return (
+  //         <span key={index} className="italic text-blue-500">
+  //           {part.replaceAll("_", " ").replaceAll("[", "").replaceAll("]", "")}
+  //         </span>
+  //       );
+  //     }
+  //     return `${part} `;
+  //   });
+
+  const highlightMentions = (
+    text: string,
+    mentions: TChatComment["mentions"],
+  ) => {
+    let formattedText = text;
+    mentions.forEach((mention) => {
+      const userName = mention.user.name;
+      formattedText = formattedText.replaceAll(
+        `@${userName}`,
+        formatMention(`@${userName}`),
+      );
+    });
+
+    return formattedText
+      .split(/(\[\/\*.*?\*\/\])/)
+      .filter((s) => s.trim().length > 0)
+      .map((text, index) => {
+        if (isTextMention(text))
+          return (
+            <span key={index} className="font-bold text-blue-500">
+              {formatContentWithoutMentionMarker(text)}
+            </span>
+          );
+        return text;
+      });
+    // const mentionRegex = /(@\w+(\s\w+)?)/g;
+    // const mentionedNames = new Set();
+    // return text.split(mentionRegex).map((part, index) => {
+    //   if (mentionRegex.test(part)) {
+    //     const name = part.replace("@", "");
+    //     if (!mentionedNames.has(name)) {
+    //       mentionedNames.add(name);
+    //       return (
+    //         <span key={index} className="italic text-blue-500">
+    //           {part}
+    //         </span>
+    //       );
+    //     }
+    //     return null;
+    //   }
+    //   return part;
+    // });
   };
 
   return (
@@ -181,7 +246,9 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
               <span className="font-bold text-gray-900">
                 {comment.author.name}
               </span>
-              <p className="text-gray-600">{comment.content}</p>
+              <p className="text-gray-600">
+                {highlightMentions(comment.content, comment.mentions)}
+              </p>
             </div>
             <span className="text-sm text-gray-500">
               {new Date(comment.createdAt).toLocaleTimeString("pt-BR", {
@@ -238,6 +305,7 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
                 })}
               </div>
 
+              {/* Botão de curtir */}
               {hasUserReact({
                 reactionType: "like",
                 reactions: comment.reactions,
@@ -261,6 +329,7 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
                 </button>
               )}
 
+              {/* emoji picker */}
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="ml-4 flex items-center space-x-1">
