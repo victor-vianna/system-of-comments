@@ -1,4 +1,10 @@
-const text = "[/*@Lucas Fernandes*/], tudo certo?";
+const commentContent =
+  "@Lucas Fernandes, boa tarde. Tudo certo ? Conseguiu falar com o @Victor Vianna ?";
 
-const splitted = text.split(/(\[\/\*.*?\*\/\])/);
-splitted.filter((s) => s.trim().length > 0).map((s) => console.log(s));
+const mentionRegex = /@(\w+(?:\s\w+)?)/g;
+const mentionedUsernames = Array.from(
+  commentContent.matchAll(mentionRegex),
+  (m) => m[1],
+);
+
+console.log(mentionedUsernames);

@@ -10,15 +10,13 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   const { data: users } = api.users.listUsers.useQuery({ page: 1, limit: 100 });
   const [mentionsMenuIsOpen, setMentionsMenuIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState(""); // Texto para busca de menção
-  const [cursorPosition, setCursorPosition] = useState<number>(0); // Posição do cursor
+  // const [cursorPosition, setCursorPosition] = useState<number>(0); // Posição do cursor
   const [infoHolder, setInfoHolder] = useState<TCreateCommentInput>({
     comment: {
       chatId: chatId,
       content: "",
       authorId: userId,
     },
-    mentions: [],
-    reactions: [],
   });
 
   const { mutate } = api.comments.createComment.useMutation({
@@ -43,44 +41,42 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
         content: "",
         authorId: userId,
       },
-      mentions: [],
-      reactions: [],
     });
     setMentionsMenuIsOpen(false); // Fecha o menu ao enviar
   };
 
-  const handleMention = (userName: string, userId: string) => {
-    const mentionText = `@${userName} `; // Cria o texto da menção
+  // const handleMention = (userName: string, userId: string) => {
+  //   const mentionText = `@${userName} `; // Cria o texto da menção
 
-    // Obtenha o texto atual e a posição do cursor
-    const inputValue = infoHolder.comment.content;
+  //   // Obtenha o texto atual e a posição do cursor
+  //   const inputValue = infoHolder.comment.content;
 
-    // Obtenha a parte antes e depois do cursor
-    const beforeCursor = inputValue.slice(0, cursorPosition);
-    const afterCursor = inputValue.slice(cursorPosition);
+  //   // Obtenha a parte antes e depois do cursor
+  //   const beforeCursor = inputValue.slice(0, cursorPosition);
+  //   const afterCursor = inputValue.slice(cursorPosition);
 
-    // Regex para encontrar a última menção
-    const mentionRegex = /@\w+(?:\s\w+)?$/;
-    const updatedBeforeCursor = beforeCursor.replace(mentionRegex, mentionText); // Substitui a última menção
+  //   // Regex para encontrar a última menção
+  //   const mentionRegex = /@\w+(?:\s\w+)?$/;
+  //   const updatedBeforeCursor = beforeCursor.replace(mentionRegex, mentionText); // Substitui a última menção
 
-    // Combine o novo texto
-    const newText = `${updatedBeforeCursor}${afterCursor}`; // Atualiza o texto com a menção
+  //   // Combine o novo texto
+  //   const newText = `${updatedBeforeCursor}${afterCursor}`; // Atualiza o texto com a menção
 
-    // Atualiza o estado com o novo texto e adiciona a menção
-    setInfoHolder((prev) => ({
-      ...prev,
-      comment: { ...prev.comment, content: newText },
-      mentions: [...prev.mentions, { chatId, userId }], // Adiciona a nova menção
-    }));
+  //   // Atualiza o estado com o novo texto e adiciona a menção
+  //   setInfoHolder((prev) => ({
+  //     ...prev,
+  //     comment: { ...prev.comment, content: newText },
+  //     mentions: [...prev.mentions, { chatId, userId }], // Adiciona a nova menção
+  //   }));
 
-    setMentionsMenuIsOpen(false); // Fecha o menu de menção após a seleção
-    setCursorPosition(updatedBeforeCursor.length); // Atualiza a posição do cursor
-  };
+  //   setMentionsMenuIsOpen(false); // Fecha o menu de menção após a seleção
+  //   setCursorPosition(updatedBeforeCursor.length); // Atualiza a posição do cursor
+  // };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const inputValue = e.target.value;
-    const newCursorPosition = e.target.selectionStart; // Use uma nova variável para a posição do cursor
-    setCursorPosition(newCursorPosition); // Atualiza a posição do cursor
+    // const newCursorPosition = e.target.selectionStart; // Use uma nova variável para a posição do cursor
+    // setCursorPosition(newCursorPosition); // Atualiza a posição do cursor
 
     setInfoHolder((prev) => ({
       ...prev,
@@ -88,69 +84,69 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
     }));
 
     // Expressão regular para capturar a menção (atualizada para capturar @Nome Sobrenome)
-    const mentionRegex = /@(\w+(?:\s\w+)?)/g;
-    const mentionMatch = mentionRegex.exec(
-      inputValue.slice(0, newCursorPosition),
-    );
+    // const mentionRegex = /@(\w+(?:\s\w+)?)/g;
+    // const mentionMatch = mentionRegex.exec(
+    //   inputValue.slice(0, newCursorPosition),
+    // );
 
     // Verifica se há correspondência e define a query
-    if (mentionMatch?.[1]) {
-      setQuery(mentionMatch[1]); // Define a query para buscar usuários
-      setMentionsMenuIsOpen(true); // Abre o menu de menções
-    } else {
-      setMentionsMenuIsOpen(false); // Fecha o menu se não houver menção
-    }
+    //   if (mentionMatch?.[1]) {
+    //     setQuery(mentionMatch[1]); // Define a query para buscar usuários
+    //     setMentionsMenuIsOpen(true); // Abre o menu de menções
+    //   } else {
+    //     setMentionsMenuIsOpen(false); // Fecha o menu se não houver menção
+    //   }
+    // };
+
+    // const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    //   if (e.key === "Backspace") {
+    //     const mentionRegex = /@\w+(?:\s\w+)?/g; // Corrigido o Regex
+    //     const beforeCursor = infoHolder.comment.content.slice(0, cursorPosition);
+    //     const mentionMatch = Array.from(
+    //       beforeCursor.matchAll(mentionRegex),
+    //     ).pop();
+
+    //     const mentionStart = mentionMatch?.index;
+    //     const mentionEnd =
+    //       mentionMatch && mentionStart !== undefined
+    //         ? mentionStart + mentionMatch[0].length
+    //         : 0;
+
+    //     if (
+    //       mentionStart !== undefined &&
+    //       cursorPosition > mentionStart &&
+    //       cursorPosition <= mentionEnd
+    //     ) {
+    //       e.preventDefault();
+
+    //       const newContent =
+    //         infoHolder.comment.content.slice(0, mentionStart) +
+    //         infoHolder.comment.content.slice(mentionEnd);
+
+    //       setInfoHolder((prev) => ({
+    //         ...prev,
+    //         comment: { ...prev.comment, content: newContent },
+    //         mentions: prev.mentions.filter((mention) => {
+    //           if (mentionMatch && mentionMatch.length > 0) {
+    //             return (
+    //               users?.find((user) => user.id === mention.userId)?.name !==
+    //               mentionMatch[0].slice(1) // Remove do estado de 'mentions'
+    //             );
+    //           }
+    //           return true;
+    //         }),
+    //       }));
+    //       setCursorPosition(mentionStart); // Atualiza a posição do cursor
+    //     }
+    //   }
+    // };
   };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Backspace") {
-      const mentionRegex = /@\w+(?:\s\w+)?/g; // Corrigido o Regex
-      const beforeCursor = infoHolder.comment.content.slice(0, cursorPosition);
-      const mentionMatch = Array.from(
-        beforeCursor.matchAll(mentionRegex),
-      ).pop();
-
-      const mentionStart = mentionMatch?.index;
-      const mentionEnd =
-        mentionMatch && mentionStart !== undefined
-          ? mentionStart + mentionMatch[0].length
-          : 0;
-
-      if (
-        mentionStart !== undefined &&
-        cursorPosition > mentionStart &&
-        cursorPosition <= mentionEnd
-      ) {
-        e.preventDefault();
-
-        const newContent =
-          infoHolder.comment.content.slice(0, mentionStart) +
-          infoHolder.comment.content.slice(mentionEnd);
-
-        setInfoHolder((prev) => ({
-          ...prev,
-          comment: { ...prev.comment, content: newContent },
-          mentions: prev.mentions.filter((mention) => {
-            if (mentionMatch && mentionMatch.length > 0) {
-              return (
-                users?.find((user) => user.id === mention.userId)?.name !==
-                mentionMatch[0].slice(1) // Remove do estado de 'mentions'
-              );
-            }
-            return true;
-          }),
-        }));
-        setCursorPosition(mentionStart); // Atualiza a posição do cursor
-      }
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="mt-auto">
       <textarea
         value={infoHolder.comment.content}
         onChange={handleTextChange}
-        onKeyDown={handleKeyDown}
+        // onKeyDown={handleKeyDown}
         placeholder="Comente ou digite '@' para mencionar alguém"
         className="relative z-10 h-20 w-full resize-none rounded-lg border bg-transparent p-3 text-black outline-none focus:ring-2 focus:ring-purple-500"
         style={{ caretColor: "black" }}
@@ -160,7 +156,15 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
       <MentionsMenu
         users={users ?? []}
         content={infoHolder.comment.content}
-        handleMention={handleMention}
+        handleMention={(userName: string) => {
+          setInfoHolder((prev) => ({
+            ...prev,
+            comment: {
+              ...prev.comment,
+              content: `${prev.comment.content}@${userName}`,
+            },
+          }));
+        }}
       />
 
       <div className="mt-2 flex justify-end gap-3">

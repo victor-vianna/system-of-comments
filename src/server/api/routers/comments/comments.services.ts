@@ -2,19 +2,21 @@ import {
   comments,
   commentsMentions,
   commentsReactions,
+  TNewCommentMention,
 } from "~/server/db/schema";
 import { PublicTRPCContext } from "../../trpc";
 import { TCreateCommentInput, TGetCommentsByChatInput } from "./comments.input";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
-
+import { and, desc, eq } from "drizzle-orm";
+import { formatWithoutDiacritics } from "../../../../lib/formatting";
 // função para criar um comentário
 export async function createComment(
   ctx: PublicTRPCContext,
   input: TCreateCommentInput,
 ) {
-  const { comment, mentions, reactions } = input;
+  const { comment } = input;
 
+  const chatId = comment.chatId;
   // insere o comentário no banco de dados
   const insertCommentResponse = await ctx.db
     .insert(comments)
@@ -28,16 +30,43 @@ export async function createComment(
       code: "INTERNAL_SERVER_ERROR",
     });
 
-  // criando menções do comentário
-  if (mentions.length > 0)
-    await ctx.db
-      .insert(commentsMentions)
-      .values(mentions.map((m) => ({ ...m, commentId: insertedCommentId })));
-  // criando reações do comentário
-  if (reactions.length > 0)
-    await ctx.db
-      .insert(commentsReactions)
-      .values(reactions.map((m) => ({ ...m, commentId: insertedCommentId })));
+  const chatMembers = await ctx.db.query.chatMembers.findMany({
+    where: (fields, { eq }) => eq(fields.chatId, chatId),
+    with: {
+      user: true,
+    },
+  });
+
+  // Identifying all mentions for the comment
+  const contentFormatted = formatWithoutDiacritics(comment.content, false);
+  console.log(contentFormatted);
+  const mentionRegex = /@(\w+(?:\s\w+)?)/g;
+  const mentionedUsernames = Array.from(
+    contentFormatted.matchAll(mentionRegex),
+    (m) => m[1],
+  );
+  console.log("USUÁRIOS MENCIONADOS", mentionedUsernames);
+  const mentionsToInsert: TNewCommentMention[] = mentionedUsernames
+    .map((mentionU) => {
+      if (!mentionU) return null;
+      const equivalentUser = chatMembers.find((c) => {
+        const userFormatted = formatWithoutDiacritics(c.user.name, false);
+        const mentionFormatted = formatWithoutDiacritics(mentionU, false);
+        console.log("USER FORMATADO", userFormatted);
+        console.log("MENTION FORMATADO", mentionFormatted);
+        return formatWithoutDiacritics(c.user.name, false) == mentionFormatted;
+      });
+      if (!equivalentUser) return null;
+      return {
+        chatId: chatId,
+        userId: equivalentUser.userId,
+        commentId: insertedCommentId,
+      };
+    })
+    .filter((m) => !!m);
+
+  console.log(mentionsToInsert);
+  await ctx.db.insert(commentsMentions).values(mentionsToInsert);
 
   return { message: "Comentário criado com sucesso!" };
 }
@@ -103,3 +132,29 @@ export async function getCommentsByChat(
 
   return chatComments;
 }
+
+// export async function identifyMentions(content: string, ctx: PublicTRPCContext) {
+//   const mentionRegex = /@(\w+(?:\s\w+)?)/g;
+//   const mentionedUsernames = Array.from(content.matchAll(mentionRegex), m => m[1]);
+
+//   if (mentionedUsernames.length === 0) {
+//     return [];
+//   }
+
+//   const mentionedUsers = [];
+//   for (const username of mentionedUsernames) {
+//     const user = await ctx.db.query.users.findFirst({
+
+//     })
+//   }
+//     columns: {
+//       id: true
+//       name: true,
+//     },
+//   });
+
+//   return mentionedUsers.map(user => ({
+//     userId: user.id,
+//     name: user.name,
+//   }));
+// }

@@ -67,6 +67,8 @@ export const commentsMentionsRelations = relations(
     }),
   }),
 );
+export type TCommentMention = typeof commentsMentions.$inferSelect;
+export type TNewCommentMention = typeof commentsMentions.$inferInsert;
 
 // tabela de reações
 export const commentsReactions = createTable("comment_reactions", {

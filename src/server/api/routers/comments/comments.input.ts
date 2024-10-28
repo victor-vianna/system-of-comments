@@ -8,8 +8,6 @@ import {
 // valida o input para criar um comentário
 export const createCommentInput = z.object({
   comment: commentSchema,
-  mentions: z.array(commentMentionSchema.omit({ commentId: true })),
-  reactions: z.array(commentReactionSchema.omit({ commentId: true })),
 });
 
 // valida o input para buscar comentário post
