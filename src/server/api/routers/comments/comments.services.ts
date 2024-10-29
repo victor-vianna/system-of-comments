@@ -44,17 +44,23 @@ export async function createComment(
   const mentionedUsernames = Array.from(
     contentFormatted.matchAll(mentionRegex),
     (m) => m[1],
-  );
+  ).filter((m) => !!m) as string[];
+
   console.log("USUÁRIOS MENCIONADOS", mentionedUsernames);
   const mentionsToInsert: TNewCommentMention[] = mentionedUsernames
     .map((mentionU) => {
       if (!mentionU) return null;
-      const equivalentUser = chatMembers.find((c) => {
-        const userFormatted = formatWithoutDiacritics(c.user.name, false);
-        const mentionFormatted = formatWithoutDiacritics(mentionU, false);
-        console.log("USER FORMATADO", userFormatted);
-        console.log("MENTION FORMATADO", mentionFormatted);
-        return formatWithoutDiacritics(c.user.name, false) == mentionFormatted;
+      const equivalentUser = chatMembers.find((chatMember) => {
+        const chatMemberFormatted = formatWithoutDiacritics(
+          chatMember.user.name,
+          false,
+        );
+        const mentionUsernameFormatted = formatWithoutDiacritics(
+          mentionU,
+          false,
+        );
+
+        return chatMemberFormatted == mentionUsernameFormatted;
       });
       if (!equivalentUser) return null;
       return {

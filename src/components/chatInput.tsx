@@ -4,6 +4,7 @@ import { TCreateCommentInput } from "~/types/comments";
 import MentionsMenu from "./comments/utils/MentionsMenu";
 import { AtSign } from "lucide-react";
 import { formatContentWithoutMentionMarker } from "~/lib/mentions";
+import MentionsInput, { Mention } from "./comments/utils/MentionsInput";
 
 const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   const utils = api.useUtils();
@@ -18,7 +19,7 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
       authorId: userId,
     },
   });
-
+  const [mentions, setMentions] = useState<Mention[]>([]);
   const { mutate } = api.comments.createComment.useMutation({
     onMutate: async () => {
       await utils.comments.getCommentsByChat.cancel();
@@ -73,77 +74,89 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   //   setCursorPosition(updatedBeforeCursor.length); // Atualiza a posição do cursor
   // };
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const inputValue = e.target.value;
-    // const newCursorPosition = e.target.selectionStart; // Use uma nova variável para a posição do cursor
-    // setCursorPosition(newCursorPosition); // Atualiza a posição do cursor
+  // const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  //   const inputValue = e.target.value;
+  //   // const newCursorPosition = e.target.selectionStart; // Use uma nova variável para a posição do cursor
+  //   // setCursorPosition(newCursorPosition); // Atualiza a posição do cursor
 
-    setInfoHolder((prev) => ({
-      ...prev,
-      comment: { ...prev.comment, content: inputValue },
-    }));
+  //   setInfoHolder((prev) => ({
+  //     ...prev,
+  //     comment: { ...prev.comment, content: inputValue },
+  //   }));
 
-    // Expressão regular para capturar a menção (atualizada para capturar @Nome Sobrenome)
-    // const mentionRegex = /@(\w+(?:\s\w+)?)/g;
-    // const mentionMatch = mentionRegex.exec(
-    //   inputValue.slice(0, newCursorPosition),
-    // );
+  //   // Expressão regular para capturar a menção (atualizada para capturar @Nome Sobrenome)
+  //   // const mentionRegex = /@(\w+(?:\s\w+)?)/g;
+  //   // const mentionMatch = mentionRegex.exec(
+  //   //   inputValue.slice(0, newCursorPosition),
+  //   // );
 
-    // Verifica se há correspondência e define a query
-    //   if (mentionMatch?.[1]) {
-    //     setQuery(mentionMatch[1]); // Define a query para buscar usuários
-    //     setMentionsMenuIsOpen(true); // Abre o menu de menções
-    //   } else {
-    //     setMentionsMenuIsOpen(false); // Fecha o menu se não houver menção
-    //   }
-    // };
+  //   // Verifica se há correspondência e define a query
+  //   //   if (mentionMatch?.[1]) {
+  //   //     setQuery(mentionMatch[1]); // Define a query para buscar usuários
+  //   //     setMentionsMenuIsOpen(true); // Abre o menu de menções
+  //   //   } else {
+  //   //     setMentionsMenuIsOpen(false); // Fecha o menu se não houver menção
+  //   //   }
+  //   // };
 
-    // const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    //   if (e.key === "Backspace") {
-    //     const mentionRegex = /@\w+(?:\s\w+)?/g; // Corrigido o Regex
-    //     const beforeCursor = infoHolder.comment.content.slice(0, cursorPosition);
-    //     const mentionMatch = Array.from(
-    //       beforeCursor.matchAll(mentionRegex),
-    //     ).pop();
+  //   // const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  //   //   if (e.key === "Backspace") {
+  //   //     const mentionRegex = /@\w+(?:\s\w+)?/g; // Corrigido o Regex
+  //   //     const beforeCursor = infoHolder.comment.content.slice(0, cursorPosition);
+  //   //     const mentionMatch = Array.from(
+  //   //       beforeCursor.matchAll(mentionRegex),
+  //   //     ).pop();
 
-    //     const mentionStart = mentionMatch?.index;
-    //     const mentionEnd =
-    //       mentionMatch && mentionStart !== undefined
-    //         ? mentionStart + mentionMatch[0].length
-    //         : 0;
+  //   //     const mentionStart = mentionMatch?.index;
+  //   //     const mentionEnd =
+  //   //       mentionMatch && mentionStart !== undefined
+  //   //         ? mentionStart + mentionMatch[0].length
+  //   //         : 0;
 
-    //     if (
-    //       mentionStart !== undefined &&
-    //       cursorPosition > mentionStart &&
-    //       cursorPosition <= mentionEnd
-    //     ) {
-    //       e.preventDefault();
+  //   //     if (
+  //   //       mentionStart !== undefined &&
+  //   //       cursorPosition > mentionStart &&
+  //   //       cursorPosition <= mentionEnd
+  //   //     ) {
+  //   //       e.preventDefault();
 
-    //       const newContent =
-    //         infoHolder.comment.content.slice(0, mentionStart) +
-    //         infoHolder.comment.content.slice(mentionEnd);
+  //   //       const newContent =
+  //   //         infoHolder.comment.content.slice(0, mentionStart) +
+  //   //         infoHolder.comment.content.slice(mentionEnd);
 
-    //       setInfoHolder((prev) => ({
-    //         ...prev,
-    //         comment: { ...prev.comment, content: newContent },
-    //         mentions: prev.mentions.filter((mention) => {
-    //           if (mentionMatch && mentionMatch.length > 0) {
-    //             return (
-    //               users?.find((user) => user.id === mention.userId)?.name !==
-    //               mentionMatch[0].slice(1) // Remove do estado de 'mentions'
-    //             );
-    //           }
-    //           return true;
-    //         }),
-    //       }));
-    //       setCursorPosition(mentionStart); // Atualiza a posição do cursor
-    //     }
-    //   }
-    // };
-  };
+  //   //       setInfoHolder((prev) => ({
+  //   //         ...prev,
+  //   //         comment: { ...prev.comment, content: newContent },
+  //   //         mentions: prev.mentions.filter((mention) => {
+  //   //           if (mentionMatch && mentionMatch.length > 0) {
+  //   //             return (
+  //   //               users?.find((user) => user.id === mention.userId)?.name !==
+  //   //               mentionMatch[0].slice(1) // Remove do estado de 'mentions'
+  //   //             );
+  //   //           }
+  //   //           return true;
+  //   //         }),
+  //   //       }));
+  //   //       setCursorPosition(mentionStart); // Atualiza a posição do cursor
+  //   //     }
+  //   //   }
+  //   // };
+  // };
   return (
     <form onSubmit={handleSubmit} className="mt-auto">
-      <textarea
+      <MentionsInput
+        suggestions={users?.map((u) => u.name) ?? []}
+        value={infoHolder.comment.content}
+        onChange={(e) =>
+          setInfoHolder((prev) => ({
+            ...prev,
+            comment: { ...prev.comment, content: e },
+          }))
+        }
+        mentions={mentions}
+        onMentionsChange={(m) => setMentions(m)}
+      />
+      {/* <textarea
         value={infoHolder.comment.content}
         onChange={handleTextChange}
         // onKeyDown={handleKeyDown}
@@ -152,7 +165,7 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
         style={{ caretColor: "black" }}
       />
 
-      {/* Menu de menções é exibido quando necessário */}
+      Menu de menções é exibido quando necessário
       <MentionsMenu
         users={users ?? []}
         content={infoHolder.comment.content}
@@ -165,7 +178,7 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
             },
           }));
         }}
-      />
+      /> */}
 
       <div className="mt-2 flex justify-end gap-3">
         <button
