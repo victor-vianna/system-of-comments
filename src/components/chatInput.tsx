@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
 import { TCreateCommentInput } from "~/types/comments";
 import MentionsMenu from "./comments/utils/MentionsMenu";
 import { AtSign } from "lucide-react";
 import { formatContentWithoutMentionMarker } from "~/lib/mentions";
 import MentionsInput, { Mention } from "./comments/utils/MentionsInput";
+import { pusherClient } from "~/lib/pusher";
 
 const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   const utils = api.useUtils();
