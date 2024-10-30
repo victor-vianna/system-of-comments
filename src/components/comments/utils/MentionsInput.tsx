@@ -34,7 +34,7 @@ const MentionsInput: React.FC<MentionsInputProps> = ({
   },
   onChange,
   onMentionsChange,
-  placeholder = "Type @ to mention someone...",
+  placeholder = "Comente ou digite '@' para mencionar alguém...",
   maxHeight = 150,
   className = "",
 }) => {
