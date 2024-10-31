@@ -7,8 +7,12 @@ export const commentRouter = createTRPCRouter({
   createComment: publicProcedure
     .input(createCommentInput)
     .mutation(async ({ ctx, input }) => {
-      await createComment(ctx, input);
-      await pusherServer.trigger("1", "new-comment", input);
+      const response = await createComment(ctx, input);
+      // emitir o evento de novo comentário
+      await pusherServer.trigger(`chat-${input.chatId}`, "new-comment", {
+        newComment: response.data,
+      });
+      return response;
     }),
   getCommentsByChat: publicProcedure
     .input(getCommentsByChatInput)

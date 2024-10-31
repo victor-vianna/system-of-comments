@@ -71,10 +71,33 @@ export async function createComment(
     })
     .filter((m) => !!m);
 
-  console.log(mentionsToInsert);
-  await ctx.db.insert(commentsMentions).values(mentionsToInsert);
+  let mentionsInsertResponse: {
+    chatId: string;
+    createdAt: Date;
+    id: string;
+    userId: string;
+    commentId: string;
+  }[] = [];
+  if (mentionsToInsert.length > 0)
+    mentionsInsertResponse = await ctx.db
+      .insert(commentsMentions)
+      .values(mentionsToInsert)
+      .returning({
+        id: commentsMentions.id,
+        chatId: commentsMentions.chatId,
+        userId: commentsMentions.userId,
+        commentId: commentsMentions.commentId,
+        createdAt: commentsMentions.createdAt,
+      });
 
-  return { message: "Comentário criado com sucesso!" };
+  return {
+    data: {
+      ...input,
+      comment: { ...input.comment, id: insertedCommentId },
+      mentions: mentionsInsertResponse,
+    },
+    message: "Comentário criado com sucesso!",
+  };
 }
 
 // função para buscar comentário por chat

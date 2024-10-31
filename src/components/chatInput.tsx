@@ -14,20 +14,21 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
   const [query, setQuery] = useState(""); // Texto para busca de menção
   // const [cursorPosition, setCursorPosition] = useState<number>(0); // Posição do cursor
   const [infoHolder, setInfoHolder] = useState<TCreateCommentInput>({
+    chatId,
     comment: {
-      chatId: chatId,
-      content: "",
+      chatId,
       authorId: userId,
+      content: "",
     },
   });
   const [mentions, setMentions] = useState<Mention[]>([]);
   const { mutate } = api.comments.createComment.useMutation({
-    onMutate: async () => {
-      await utils.comments.getCommentsByChat.cancel();
-    },
-    onSettled: async () => {
-      await utils.comments.getCommentsByChat.invalidate({ chatId });
-    },
+    // onMutate: async () => {
+    //   await utils.comments.getCommentsByChat.cancel();
+    // },
+    // onSettled: async () => {
+    //   await utils.comments.getCommentsByChat.invalidate({ chatId });
+    // },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,10 +39,11 @@ const ChatInput = ({ chatId, userId }: { chatId: string; userId: string }) => {
 
     // Limpa o campo de texto após o envio
     setInfoHolder({
+      chatId,
       comment: {
-        chatId: chatId,
-        content: "",
+        chatId,
         authorId: userId,
+        content: "",
       },
     });
     setMentionsMenuIsOpen(false); // Fecha o menu ao enviar

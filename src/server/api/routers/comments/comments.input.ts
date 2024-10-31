@@ -7,6 +7,7 @@ import {
 
 // valida o input para criar um comentário
 export const createCommentInput = z.object({
+  chatId: z.string(),
   comment: commentSchema,
 });
 

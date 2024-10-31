@@ -9,3 +9,6 @@ export type TChatComment = TChatComments[number];
 export type TCreateCommentInput = inferProcedureInput<
   AppRouter["comments"]["createComment"]
 >;
+export type TCreateCommentOutput = inferProcedureOutput<
+  AppRouter["comments"]["createComment"]
+>;
