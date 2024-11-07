@@ -12,7 +12,12 @@ type ChatPageProps = {
 function ChatPage({ chat, userId }: ChatPageProps) {
   const chatId = "12345678910";
 
-  const { data: comments } = api.comments.getCommentsByChat.useQuery({
+  const {
+    data: comments,
+    isLoading,
+    isError,
+    isSuccess,
+  } = api.comments.getCommentsByChat.useQuery({
     chatId,
   });
   console.log("COMMENTS", comments);
@@ -54,14 +59,27 @@ function ChatPage({ chat, userId }: ChatPageProps) {
           </span>
         </div>
       </div>
-      <div className="flex w-full grow flex-col">
-        <CommentsWrapper
-          chatId={chatId}
-          userId={userId}
-          chatMembers={chat?.members ?? []}
-          initialComments={comments ?? []}
-        />
-      </div>
+      {isLoading ? (
+        <div className="flex w-full grow animate-pulse flex-col items-center justify-center">
+          Carregando mensagens...
+        </div>
+      ) : null}
+      {isError ? (
+        <div className="flex w-full grow flex-col items-center justify-center text-red-500">
+          Oops, houve um erro ao carregar mensagens...
+        </div>
+      ) : null}
+      {isSuccess ? (
+        <div className="flex w-full grow flex-col">
+          <CommentsWrapper
+            chatId={chatId}
+            userId={userId}
+            chatMembers={chat?.members ?? []}
+            initialComments={comments ?? []}
+          />
+        </div>
+      ) : null}
+
       <ChatInput chatId={chatId} userId={userId} />
     </div>
   );

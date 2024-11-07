@@ -19,6 +19,8 @@ export default function CommentsWrapper({
   initialComments,
   chatMembers,
 }: CommentsWrapperProps) {
+  console.log(initialComments);
+  const [commentsHolder, setCommentsHolder] = useState(initialComments);
   const [incomingComments, setIncomingComments] = useState<TChatComment[]>([]);
   const [chatComments, setChatComments] =
     useState<TChatComment[]>(initialComments);
@@ -32,11 +34,9 @@ export default function CommentsWrapper({
     }) => {
       const commentCreatedData = data.newComment.comment;
       const commentCreatedMentions = data.newComment.mentions;
-
       const author = chatMembers.find(
         (m) => m.userId === commentCreatedData.authorId,
       );
-
       const mentions: TChatComment["mentions"] = commentCreatedMentions.map(
         (mention) => {
           const equivalentUser = chatMembers.find(
@@ -52,7 +52,6 @@ export default function CommentsWrapper({
           };
         },
       );
-
       const newComment: TChatComment = {
         attachments: [],
         author: {
@@ -68,160 +67,55 @@ export default function CommentsWrapper({
         mentions,
         reactions: [],
       };
-
-      setIncomingComments((prevComments) => [...prevComments, newComment]);
+      setCommentsHolder((prevComments) => [...prevComments, newComment]);
     };
-
     channel.bind("new-comment", handleNewComment);
-
     const handleNewReaction = (data: {
       newReaction: TCreateReactionOutput["data"];
     }) => {
+      console.log("NEW REACTION", data);
       const newReaction = data.newReaction.reaction;
       const newReactionAuthor = chatMembers.find(
         (m) => m.userId === newReaction.userId,
       );
-      const isReactionForChatComments = chatComments.find(
-        (c) => c.id == newReaction.commentId,
+
+      setCommentsHolder((prev) =>
+        prev.map((chatComment) =>
+          chatComment.id == newReaction.commentId
+            ? {
+                ...chatComment,
+                reactions: [
+                  ...chatComment.reactions,
+                  {
+                    ...newReaction,
+                    user: {
+                      id: newReactionAuthor?.userId ?? "id-holder",
+                      name: newReactionAuthor?.user.name ?? "name-holder",
+                      avatar: newReactionAuthor?.user.avatar ?? null,
+                    },
+                  },
+                ],
+              }
+            : chatComment,
+        ),
       );
-
-      // if (isReactionForChatComments) {
-      //   // const newChatComments: TChatComment[] = chatComments.map(
-      //   //   (chatComment) =>
-      //   //     chatComment.id == newReaction.commentId
-      //   //       ? {
-      //   //           ...chatComment,
-      //   //           reactions: [
-      //   //             ...chatComment.reactions,
-      //   //             {
-      //   //               ...newReaction,
-      //   //               user: {
-      //   //                 id: newReactionAuthor?.userId || "id-holder",
-      //   //                 name: newReactionAuthor?.user.name || "name-holder",
-      //   //                 avatar: newReactionAuthor?.user.avatar || null,
-      //   //               },
-      //   //             },
-      //   //           ],
-      //   //         }
-      //   //       : chatComment,
-      //   // );
-      //   setChatComments((prev) =>
-      //     prev.map((chatComment) =>
-      //       chatComment.id == newReaction.commentId
-      //         ? {
-      //             ...chatComment,
-      //             reactions: [
-      //               ...chatComment.reactions,
-      //               {
-      //                 ...newReaction,
-      //                 user: {
-      //                   id: newReactionAuthor?.userId ?? "id-holder",
-      //                   name: newReactionAuthor?.user.name ?? "name-holder",
-      //                   avatar: newReactionAuthor?.user.avatar ?? null,
-      //                 },
-      //               },
-      //             ],
-      //           }
-      //         : chatComment,
-      //     ),
-      //   );
-      // } else {
-      //   setIncomingComments((prev) =>
-      //     prev.map((chatComment) =>
-      //       chatComment.id == newReaction.commentId
-      //         ? {
-      //             ...chatComment,
-      //             reactions: [
-      //               ...chatComment.reactions,
-      //               {
-      //                 ...newReaction,
-      //                 user: {
-      //                   id: newReactionAuthor?.userId ?? "id-holder",
-      //                   name: newReactionAuthor?.user.name ?? "name-holder",
-      //                   avatar: newReactionAuthor?.user.avatar ?? null,
-      //                 },
-      //               },
-      //             ],
-      //           }
-      //         : chatComment,
-      //     ),
-      //   );
-      // }
-
-      // Atualizar a reação no comentário existente, se encontrado
-      // if (commentIndex !== -1) {
-      //   const updatedReactions: TChatComment["reactions"] = [
-      //     ...chatComments[commentIndex].reactions,
-      //     {
-      //       id: newReaction.id,
-      //       reactionType: newReaction.reactionType,
-      //       userId: newReaction.userId,
-      //       user: {
-      //         id: newReaction.user.id,
-      //         name: newReaction.user.name,
-      //         avatar: newReaction.user.avatar,
-      //       },
-      //     },
-      //   ];
-
-      //   const updatedComments = [...chatComments];
-      //   updatedComments[commentIndex] = {
-      //     ...updatedComments[commentIndex],
-      //     reactions: updatedReactions,
-      //   };
-
-      //   setChatComments(updatedComments);
-      // } else {
-      //   // Se o comentário estiver em incomingComments
-      //   const incomingCommentIndex = incomingComments.findIndex(
-      //     (comment) => comment.id === newReaction.commentId,
-      //   );
-
-      //   if (incomingCommentIndex !== -1) {
-      //     const updatedIncomingReactions: TChatComment["reactions"] = [
-      //       ...incomingComments[incomingCommentIndex].reactions,
-      //       {
-      //         id: newReaction.id,
-      //         reactionType: newReaction.reactionType,
-      //         userId: newReaction.userId,
-      //         user: {
-      //           id: newReaction.user.id,
-      //           name: newReaction.user.name,
-      //           avatar: newReaction.user.avatar,
-      //         },
-      //       },
-      //     ];
-
-      //     const updatedIncomingComments = [...incomingComments];
-      //     updatedIncomingComments[incomingCommentIndex] = {
-      //       ...updatedIncomingComments[incomingCommentIndex],
-      //       reactions: updatedIncomingReactions,
-      //     };
-
-      //     setIncomingComments(updatedIncomingComments);
-      //   }
-      // }
     };
-
     channel.bind("new-reaction", handleNewReaction);
-
     return () => {
       channel.unbind("new-comment", handleNewComment);
       channel.unbind("new-reaction", handleNewReaction);
       pusherClient.unsubscribe(`chat-${chatId}`);
     };
-  }, [chatId, chatMembers, chatComments, incomingComments]);
+  }, [chatId]);
 
-  console.log(chatComments);
-  console.log(incomingComments);
   return (
     <div className="flex w-full flex-col">
-      {chatComments.map((comment) => (
+      {commentsHolder.map((comment) => (
         <CommentCard key={comment.id} comment={comment} userId={userId} />
       ))}
-      {incomingComments.map((comment) => (
+      {/* {incomingComments.map((comment) => (
         <CommentCard key={comment.id} comment={comment} userId={userId} />
-      ))}
+      ))} */}
     </div>
   );
 }

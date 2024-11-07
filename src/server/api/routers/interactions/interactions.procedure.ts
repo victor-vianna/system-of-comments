@@ -16,7 +16,7 @@ export const interactionsRouter = createTRPCRouter({
       const response = await createReaction(ctx, input);
       // emitir o evento de nova reação
       await pusherServer.trigger(`chat-${input.chatId}`, "new-reaction", {
-        newReaction: response,
+        newReaction: response.data,
       });
       return response;
     }),
@@ -29,7 +29,7 @@ export const interactionsRouter = createTRPCRouter({
         `chat-${response.data.chatId}`,
         "removed-reaction",
         {
-          removedReaction: response,
+          removedReaction: response.data,
         },
       );
       return response;
