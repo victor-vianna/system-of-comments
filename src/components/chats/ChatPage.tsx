@@ -15,6 +15,7 @@ function ChatPage({ chat, userId }: ChatPageProps) {
   const { data: comments } = api.comments.getCommentsByChat.useQuery({
     chatId,
   });
+  console.log("COMMENTS", comments);
   return (
     <div className="flex h-full w-full flex-col p-6">
       {/* Header */}

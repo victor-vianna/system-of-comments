@@ -1,3 +1,4 @@
+import { pusherServer } from "~/lib/pusher";
 import { createTRPCRouter, publicProcedure } from "../../trpc";
 import {
   CreateReactionInput,
@@ -12,12 +13,26 @@ export const interactionsRouter = createTRPCRouter({
   createReaction: publicProcedure
     .input(CreateReactionInput)
     .mutation(async ({ ctx, input }) => {
-      return createReaction(ctx, input);
+      const response = await createReaction(ctx, input);
+      // emitir o evento de nova reação
+      await pusherServer.trigger(`chat-${input.chatId}`, "new-reaction", {
+        newReaction: response,
+      });
+      return response;
     }),
   deleteReaction: publicProcedure
     .input(DeleteReactionInputSchema)
     .mutation(async ({ ctx, input }) => {
-      return deleteReaction(ctx, input);
+      const response = await deleteReaction(ctx, input);
+      // emitir o evento de reação apagada
+      await pusherServer.trigger(
+        `chat-${response.data.chatId}`,
+        "removed-reaction",
+        {
+          removedReaction: response,
+        },
+      );
+      return response;
     }),
 
   //   //rota para adicionar reação a um comentário

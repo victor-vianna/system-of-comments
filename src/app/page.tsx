@@ -20,6 +20,7 @@ const ChatComponent = () => {
     error: chatError,
   } = api.chats.getChatById.useQuery(chatId);
   console.log("USER", selectedUser);
+
   if (!isChatSuccess) return null;
   if (!selectedUser)
     return (

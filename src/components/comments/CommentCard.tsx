@@ -28,96 +28,96 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
 
   const { mutate: createMutation, isPending } =
     api.reactions.createReaction.useMutation({
-      onMutate: async (data) => {
-        await utils.comments.getCommentsByChat.cancel();
-        // Get the data from the queryCache
-        const prevData = utils.comments.getCommentsByChat.getData();
-        utils.comments.getCommentsByChat.setData(
-          { chatId: comment.chatId },
-          (old) => {
-            const indexOfComment = old?.map((p) => p.id).indexOf(comment.id);
-            return old?.map((comment, index) =>
-              index != indexOfComment
-                ? comment
-                : {
-                    ...comment,
-                    reactions: [
-                      ...comment.reactions,
-                      {
-                        ...data,
-                        id: "id-holder",
-                        user: {
-                          id: "user-id-holder",
-                          name: "...",
-                          avatar: null,
-                        },
-                      },
-                    ],
-                  },
-            );
-          },
-        );
-        return { prevData };
-      },
+      // onMutate: async (data) => {
+      //   await utils.comments.getCommentsByChat.cancel();
+      //   // Get the data from the queryCache
+      //   const prevData = utils.comments.getCommentsByChat.getData();
+      //   utils.comments.getCommentsByChat.setData(
+      //     { chatId: comment.chatId },
+      //     (old) => {
+      //       const indexOfComment = old?.map((p) => p.id).indexOf(comment.id);
+      //       return old?.map((comment, index) =>
+      //         index != indexOfComment
+      //           ? comment
+      //           : {
+      //               ...comment,
+      //               reactions: [
+      //                 ...comment.reactions,
+      //                 {
+      //                   ...data,
+      //                   id: "id-holder",
+      //                   user: {
+      //                     id: "user-id-holder",
+      //                     name: "...",
+      //                     avatar: null,
+      //                   },
+      //                 },
+      //               ],
+      //             },
+      //       );
+      //     },
+      //   );
+      //   return { prevData };
+      // },
       onSuccess: (data, err, cont) => {
-        toast.success(data, {
+        toast.success(data.message, {
           position: "top-center",
         });
       },
-      onSettled: async () => {
-        await utils.comments.getCommentsByChat.invalidate({
-          chatId: comment.chatId,
-        });
-      },
-      onError(err, newReaction, ctx) {
-        toast.error(err.message);
-        // If the mutation fails, use the context-value from onMutate
-        utils.comments.getCommentsByChat.setData(
-          { chatId: comment.chatId },
-          ctx?.prevData,
-        );
-      },
+      // onSettled: async () => {
+      //   await utils.comments.getCommentsByChat.invalidate({
+      //     chatId: comment.chatId,
+      //   });
+      // },
+      // onError(err, newReaction, ctx) {
+      //   toast.error(err.message);
+      //   // If the mutation fails, use the context-value from onMutate
+      //   utils.comments.getCommentsByChat.setData(
+      //     { chatId: comment.chatId },
+      //     ctx?.prevData,
+      //   );
+      // },
     });
   const { mutate: deleteMutation, isPending: isDeletePending } =
     api.reactions.deleteReaction.useMutation({
-      onMutate: async (data) => {
-        await utils.comments.getCommentsByChat.cancel();
-        // Get the data from the queryCache
-        const prevData = utils.comments.getCommentsByChat.getData();
-        utils.comments.getCommentsByChat.setData(
-          { chatId: comment.chatId },
-          (old) => {
-            const indexOfComment = old?.map((p) => p.id).indexOf(comment.id);
-            return old?.map((comment, index) =>
-              index != indexOfComment
-                ? comment
-                : {
-                    ...comment,
-                    reactions: comment.reactions.filter((r) => r.id != data),
-                  },
-            );
-          },
-        );
-        return { prevData };
-      },
+      // onMutate: async (data) => {
+      //   await utils.comments.getCommentsByChat.cancel();
+      //   // Get the data from the queryCache
+      //   const prevData = utils.comments.getCommentsByChat.getData();
+      //   utils.comments.getCommentsByChat.setData(
+      //     { chatId: comment.chatId },
+      //     (old) => {
+      //       const indexOfComment = old?.map((p) => p.id).indexOf(comment.id);
+      //       return old?.map((comment, index) =>
+      //         index != indexOfComment
+      //           ? comment
+      //           : {
+      //               ...comment,
+      //               reactions: comment.reactions.filter((r) => r.id != data),
+      //             },
+      //       );
+      //     },
+      //   );
+      //   return { prevData };
+      // },
       onSuccess: (data, err, cont) => {
-        toast.success(data, {
+        toast.success(data.message, {
           position: "top-center",
         });
       },
-      onSettled: async () => {
-        await utils.comments.getCommentsByChat.invalidate({
-          chatId: comment.chatId,
-        });
-      },
-      onError(err, newReaction, ctx) {
-        toast.error(err.message);
-        // If the mutation fails, use the context-value from onMutate
-        utils.comments.getCommentsByChat.setData(
-          { chatId: comment.chatId },
-          ctx?.prevData,
-        );
-      },
+      // onSettled: async () => {
+      //   await utils.comments.getCommentsByChat.invalidate({
+      //     chatId: comment.chatId,
+      //   });
+      // },
+      // onError(err, newReaction, ctx) {
+      //   toast.error(err.message);
+      //   // If the mutation fails, use the context-value from onMutate
+      //   utils.comments.getCommentsByChat.setData(
+      //     { chatId: comment.chatId },
+      //     ctx?.prevData,
+      //   );
+      // },
     });
   const reactionsCounterList = comment.reactions.reduce(
     (acc: Record<string, number>, current) => {

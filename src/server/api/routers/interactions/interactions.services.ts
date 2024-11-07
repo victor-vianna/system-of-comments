@@ -25,12 +25,37 @@ export const createReaction = async (
       code: "INTERNAL_SERVER_ERROR",
     });
 
-  return "Reação criada com sucesso !";
+  return {
+    data: {
+      reaction: { ...input, id: insertedId },
+    },
+    message: "Você reagiu com sucesso!",
+  };
 };
 
 export const deleteReaction = async (ctx: PublicTRPCContext, input: string) => {
-  await ctx.db.delete(commentsReactions).where(eq(commentsReactions.id, input));
-  return "Reação removida com sucesso !";
+  const deleteReactionResponse = await ctx.db
+    .delete(commentsReactions)
+    .where(eq(commentsReactions.id, input))
+    .returning({
+      id: commentsReactions.id,
+      chatId: commentsReactions.chatId,
+      commentId: commentsReactions.commentId,
+    });
+  const deleteReactionData = deleteReactionResponse[0];
+  if (!deleteReactionData)
+    throw new TRPCError({
+      message: "Reação excluída com sucesso!",
+      code: "INTERNAL_SERVER_ERROR",
+    });
+  return {
+    data: {
+      deletedId: deleteReactionData.id,
+      chatId: deleteReactionData.chatId,
+      commentId: deleteReactionData.commentId,
+    },
+    message: "Reação removida com sucesso !",
+  };
 };
 
 // // função para adicionar reação com emoji
