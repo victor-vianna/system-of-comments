@@ -3,7 +3,10 @@ import { api } from "~/trpc/react";
 import CommentCard from "./CommentCard";
 import { pusherClient } from "~/lib/pusher"; // Certifique-se de que o Pusher está importado corretamente
 import { TChatComment, TCreateCommentOutput } from "~/types/comments";
-import { TCreateReactionOutput } from "~/types/reactions";
+import {
+  TCreateReactionOutput,
+  TDeleteReactionOutput,
+} from "~/types/reactions";
 import { TChatById } from "~/types/chat";
 
 type CommentsWrapperProps = {
@@ -70,6 +73,7 @@ export default function CommentsWrapper({
       setCommentsHolder((prevComments) => [...prevComments, newComment]);
     };
     channel.bind("new-comment", handleNewComment);
+
     const handleNewReaction = (data: {
       newReaction: TCreateReactionOutput["data"];
     }) => {
@@ -101,9 +105,34 @@ export default function CommentsWrapper({
       );
     };
     channel.bind("new-reaction", handleNewReaction);
+
+    const handleDeleteReaction = (data: {
+      removedReaction: TDeleteReactionOutput["data"];
+    }) => {
+      console.log("DELETED REACTION", data);
+      const removedReaction = data.removedReaction.reaction;
+
+      setCommentsHolder((prev) =>
+        prev.map((chatComment) =>
+          chatComment.id === removedReaction.commentId
+            ? {
+                ...chatComment,
+                reactions: chatComment.reactions.filter(
+                  (reaction) => reaction.id !== removedReaction.id,
+                ),
+              }
+            : chatComment,
+        ),
+      );
+    };
+
+    // Vincular a função `handleDeleteReaction` ao evento de exclusão de reação
+    channel.bind("removed-reaction", handleDeleteReaction);
+
     return () => {
       channel.unbind("new-comment", handleNewComment);
       channel.unbind("new-reaction", handleNewReaction);
+      channel.unbind("removed-reaction", handleDeleteReaction);
       pusherClient.unsubscribe(`chat-${chatId}`);
     };
   }, [chatId]);

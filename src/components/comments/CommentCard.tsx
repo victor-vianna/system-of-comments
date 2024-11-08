@@ -18,6 +18,13 @@ import {
   formatMention,
   isTextMention,
 } from "~/lib/mentions";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@radix-ui/react-tooltip";
+
 type CommentProps = {
   comment: TChatComment;
   userId: string;
@@ -330,32 +337,31 @@ const CommentCard = ({ comment, userId }: CommentProps) => {
               )}
 
               {/* emoji picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="ml-4 flex items-center space-x-1">
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 12h14M5 12l7-7m-7 7l7 7"
-                      />
-                    </svg>
-                    <span>Reações</span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <div className="mt-2">
-                    <EmojiPicker onEmojiClick={handleEmojiClick} />
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="ml-4 flex items-center space-x-1">
+                          <span>🫥</span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <div className="mt-2">
+                          <EmojiPicker onEmojiClick={handleEmojiClick} />
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    className="rounded-md bg-blue-500 p-2 text-white shadow-lg"
+                    style={{ fontSize: "11px", maxWidth: "150px" }}
+                  >
+                    Adicionar reação
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               {/* Condicional para mostrar o Emoji Picker */}
             </div>
             <div className="flex items-center gap-2">
