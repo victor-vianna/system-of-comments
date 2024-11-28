@@ -1,0 +1,1 @@
+ALTER TABLE "system-of-comments_tests" ALTER COLUMN "message" SET NOT NULL;
