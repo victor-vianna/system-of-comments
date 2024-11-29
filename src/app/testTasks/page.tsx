@@ -21,6 +21,17 @@ function TestPage() {
     },
   ]);
 
+  function onTaskClick(taskId) {
+    const newTasks = tasks.map((task) => {
+      if (taskId == task.id) {
+        return {...task, isCompleted: !task.isCompleted}
+      } else {
+        return task
+      }
+    })
+    setTasks(newTasks);
+  }
+
   return (
     <div className="flex h-full w-full justify-center bg-blue-300 p-6">
       <div className="w-[500px]">
@@ -28,7 +39,7 @@ function TestPage() {
           GERENCIADOR DE TAREFAS
         </h1>
         <AddTask />
-        <Tasks tasks={tasks} />
+        <Tasks tasks={tasks} onTaskClick={onTaskClick} />
       </div>
     </div>
   );
